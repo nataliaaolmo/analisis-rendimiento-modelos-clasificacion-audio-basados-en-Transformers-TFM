@@ -1,6 +1,6 @@
 # Audio Classification — Fine-tuning de modelos de audio con HuggingFace Transformers
 
-Repositorio con el código de fine-tuning y evaluación de modelos de clasificación de audio basados en arquitecturas Transformer. El objetivo es comparar el rendimiento de tres arquitecturas preentrenadas — **DistilHuBERT**, **HuBERT** y **Wav2Vec2** — sobre cinco datasets acústicos de distinta naturaleza.
+Repositorio con el código de fine-tuning y evaluación de modelos de clasificación de audio basados en arquitecturas Transformer. El objetivo es comparar el rendimiento de tres arquitecturas preentrenadas (**DistilHuBERT**, **HuBERT** y **Wav2Vec2**) sobre cinco datasets acústicos de distinta naturaleza.
 
 ---
 
@@ -8,25 +8,25 @@ Repositorio con el código de fine-tuning y evaluación de modelos de clasificac
 
 El proyecto consta de dos scripts principales:
 
-### `train.py` — Entrenamiento y fine-tuning
+### `clasificador_audio.py` — Entrenamiento y fine-tuning
 
 Realiza el fine-tuning de un modelo preentrenado de audio sobre un dataset de clasificación. Sus funcionalidades principales son:
 
 - Carga y preprocesa el dataset seleccionado (local o descargado desde Kaggle).
-- Aplica aumentación de datos en train: ruido gaussiano y variación de ganancia aleatoria.
+- Aplica regularización de datos en train: ruido gaussiano y variación de ganancia aleatoria.
 - Normaliza y trunca las señales de audio a una duración máxima configurable por dataset.
 - Realiza el fine-tuning del modelo con `Trainer` de HuggingFace, con parada temprana (`EarlyStoppingCallback`) basada en accuracy.
 - Registra curvas de aprendizaje (accuracy y loss) por época, tanto en formato JSON como en PNG.
 - Guarda el modelo y el feature extractor en disco al finalizar el entrenamiento.
-- Evalúa el modelo sobre el split de test con un `pipeline` de HuggingFace y genera métricas completas: accuracy global, accuracy por clase y matriz de confusión.
+- Evalúa el modelo sobre el conjunto de test con un `pipeline` de HuggingFace y genera métricas completas: accuracy global, accuracy por clase y matriz de confusión.
 
-### `diagnosis.py` — Diagnóstico de un modelo ya entrenado
+### `validacion-modelo.py` — Validación de un modelo ya entrenado
 
-Carga un modelo guardado en disco y ejecuta una evaluación completa sobre el split de test del dataset indicado. Genera un informe en texto plano con accuracy global, accuracy por clase y matriz de confusión, guardado en la carpeta `./resultados/`.
+Carga un modelo guardado en disco y ejecuta una evaluación completa sobre el conjunto de test del dataset indicado. Genera un informe en texto plano con accuracy global, accuracy por clase y matriz de confusión, guardado en la carpeta `./resultados/`.
 
-### `results.py` + `table.py` — Análisis de resultados agregados
+### `results.py` + `table:generation_acc.py` — Análisis de resultados agregados
 
-`results.py` almacena los resultados de accuracy de los cinco experimentos por modelo y dataset. `table.py` los consume, calcula media ± desviación típica y exporta una tabla resumen a `results_table.csv`.
+`results.py` almacena los resultados de accuracy de los cinco experimentos por modelo y dataset. `table_generation_acc.py` los consume, calcula media ± desviación típica y exporta una tabla resumen a `results_table.csv`.
 
 ---
 
@@ -66,10 +66,10 @@ El proyecto soporta cinco datasets. Cuatro de ellos se descargan automáticament
 
 ```
 .
-├── train.py           # Script principal de fine-tuning y evaluación
-├── diagnosis.py       # Diagnóstico de un modelo ya entrenado
+├── clasificador_audio.py           # Script principal de fine-tuning y evaluación
+├── validacion-modelo.py       # Validación de un modelo ya entrenado
 ├── results.py         # Diccionario con los resultados de los experimentos
-├── table.py           # Genera la tabla resumen con media ± std
+├── table_generation_acc.py           # Genera la tabla resumen con media ± std
 ├── dataset/           # Dataset local (NO incluido — aportarlo manualmente)
 └── resultados/        # Carpeta de salida para informes de diagnosis.py
 ```
@@ -80,17 +80,8 @@ Los checkpoints y artefactos generados durante el entrenamiento se guardan en ca
 
 ## Requisitos
 
-Python **3.10** o superior. Se recomienda usar un entorno virtual.
+Python **3.9.13** o superior. Se recomienda usar un entorno virtual.
 
-### Instalación
-
-```bash
-python -m venv venv
-source venv/bin/activate       # Linux/macOS
-# venv\Scripts\activate        # Windows
-
-pip install -r requirements.txt
-```
 
 ### Dependencias principales
 
@@ -116,7 +107,7 @@ pip install -r requirements.txt
 
 ### 1. Configurar el experimento
 
-Al inicio de `train.py` se definen tres variables de configuración:
+Al inicio de `clasificador_audio.py` se definen tres variables de configuración:
 
 ```python
 MODEL_ID      = "ntu-spml/distilhubert"   # o "facebook/hubert-base-ls960" / "facebook/wav2vec2-base-960h"
@@ -127,28 +118,28 @@ FINETUNE_NUM  = 1                          # número de experimento, para distin
 ### 2. Entrenar
 
 ```bash
-python train.py
+python3 clasificador_audio.py
 ```
 
-El script descargará automáticamente el dataset desde Kaggle (si no está en caché), preprocesará los audios, entrenará el modelo durante hasta 10 épocas con parada temprana y guardará:
+El script descargará automáticamente el dataset desde Kaggle (si no está en caché), preprocesará los audios, entrenará el modelo durante hasta 10 épocas con early stopping y guardará:
 
 - El modelo fine-tuneado en `./{EXPERIMENT_ID}/`
 - La curva de aprendizaje en `./{EXPERIMENT_ID}/learning_curve-{EXPERIMENT_ID}.json` y `.png`
 
 ### 3. Evaluar un modelo ya entrenado
 
-Edita las variables `MODEL_ID`, `DATASET` y `FINETUNE_N` en `diagnosis.py` para que apunten al experimento que quieres evaluar, y ejecuta:
+Edita las variables `MODEL_ID`, `DATASET` y `FINETUNE_N` en `validacion-modelo.py` para que apunten al experimento que se quiere evaluar, y ejecuta:
 
 ```bash
-python diagnosis.py
+python3 validacion-modelo.py
 ```
 
-El informe se guarda en `./resultados/{EXPERIMENT_ID}.txt`.
+El informe se guarda en `./resultados/`.
 
 ### 4. Generar la tabla de resultados agregados
 
 ```bash
-python table.py
+python3 table_generation_acc.py
 ```
 
 Genera `results_table.csv` con la media ± desviación típica de accuracy de los cinco experimentos por modelo y dataset.
