@@ -71,7 +71,7 @@ El proyecto soporta cinco datasets. Cuatro de ellos se descargan automáticament
 ├── results.py         # Diccionario con los resultados de los experimentos
 ├── table_generation_acc.py           # Genera la tabla resumen con media ± std
 ├── dataset/           # Dataset local (NO incluido — aportarlo manualmente)
-└── resultados/        # Carpeta de salida para informes de diagnosis.py
+└── resultados/        # Carpeta de salida para informes de validacion-modelo.py
 ```
 
 Los checkpoints y artefactos generados durante el entrenamiento se guardan en carpetas con el formato `{model_short}-{dataset}-finetuned{N}/`.
